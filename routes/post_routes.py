@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.auth_middleware import jwt_required
 from models.post_model import create_post, get_all_posts, like_post, save_post
+from utils.user_preview import get_user_preview
 
 post_bp = Blueprint("posts", __name__)
 
@@ -31,17 +32,32 @@ def create_new_post():
 @post_bp.get("/get")
 @jwt_required
 def get_posts():
-    # print("helloooooooooooooooooooooooooooooooo")
-    # return [],200
     posts = get_all_posts()
+    enriched_posts = []
 
     for post in posts:
-        post["_id"] = str(post["_id"])
-        post["author"] = str(post["author"])
-        post["likes"] = [str(u) for u in post["likes"]]
-        post["savedBy"] = [str(u) for u in post["savedBy"]]
+        likes = post.get("likes", [])
+        saved = post.get("savedBy", [])
 
-    return jsonify(posts), 200
+        enriched_posts.append({
+            "_id": str(post["_id"]),
+            "caption": post.get("caption"),
+            "image": post.get("image"),
+            "video": post.get("video"),
+
+            "author": get_user_preview(post["author"]),
+
+            "likesCount": len(likes),
+            "savedCount": len(saved),
+            "commentsCount": post.get("commentsCount", 0),
+
+            "likes": request.user_id in [str(u) for u in likes],
+            "savedBy": request.user_id in [str(u) for u in saved],
+
+            "createdAt": post["createdAt"]
+        })
+
+    return jsonify(enriched_posts), 200
 
 @post_bp.route("/<post_id>/like", methods=["PUT"])
 @jwt_required
