@@ -33,9 +33,11 @@ def like_post(post_id, user_id):
         {"$addToSet": {"likes": ObjectId(user_id)}}
     )
 
-
 def save_post(post_id, user_id):
     return posts_collection.update_one(
         {"_id": ObjectId(post_id)},
         {"$addToSet": {"savedBy": ObjectId(user_id)}}
     )
+
+def get_posts_by_user_id(user_id):
+    return list(posts_collection.find({"author": ObjectId(user_id)}).sort("createdAt", -1))

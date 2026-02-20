@@ -3,6 +3,7 @@ from flask_cors import CORS
 from routes.auth_routes import auth_bp
 from routes.post_routes import post_bp
 from routes.comment_routes import comment_bp
+from routes.profile import profile_bp
 
 
 from config import PORT, FRONTEND_URL
@@ -13,6 +14,7 @@ CORS(app, resources={r"/api/*": {"origins": FRONTEND_URL}})
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(post_bp, url_prefix="/api/posts")
 app.register_blueprint(comment_bp, url_prefix="/api/comments")
+app.register_blueprint(profile_bp, url_prefix="/api/profile")
 
 
 @app.route("/")
