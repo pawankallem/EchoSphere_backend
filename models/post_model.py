@@ -1,0 +1,41 @@
+from database.db import db
+from bson import ObjectId
+from datetime import datetime
+
+posts_collection = db["posts"]
+
+def create_post(data):
+    post = {
+        "author": ObjectId(data["author"]),
+        "caption": data.get("caption", ""),
+        "image": data.get("image"),
+        "video": data.get("video"),
+        "likes": [],
+        "savedBy": [],
+        "commentsCount": 0,
+        "createdAt": datetime.utcnow()
+    }
+
+    return posts_collection.insert_one(post)
+
+
+def get_all_posts():
+    return list(posts_collection.find().sort("createdAt", -1))
+
+
+def get_post_by_id(post_id):
+    return posts_collection.find_one({"_id": ObjectId(post_id)})
+
+
+def like_post(post_id, user_id):
+    return posts_collection.update_one(
+        {"_id": ObjectId(post_id)},
+        {"$addToSet": {"likes": ObjectId(user_id)}}
+    )
+
+
+def save_post(post_id, user_id):
+    return posts_collection.update_one(
+        {"_id": ObjectId(post_id)},
+        {"$addToSet": {"savedBy": ObjectId(user_id)}}
+    )
