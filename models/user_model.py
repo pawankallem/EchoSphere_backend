@@ -9,7 +9,7 @@ def create_user(data):
         "email": data["email"],
         "password": data["password"],
 
-        "avatar": "https://i.pravatar.cc/150",
+        "avatar": "",
         "bio": "",
         "location": "",
         "website": "",
@@ -30,3 +30,18 @@ def find_by_username(username):
 
 def get_user_by_id(user_id):
     return users_collection.find_one({"_id": ObjectId(user_id)})
+
+
+def update_user(user_id, data):
+    update_fields = {}
+
+    allowed_fields = ["name", "avatar", "bio", "location", "website"]
+
+    for field in allowed_fields:
+        if field in data:
+            update_fields[field] = data[field]
+
+    return users_collection.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_fields}
+    )
