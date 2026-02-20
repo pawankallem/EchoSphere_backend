@@ -2,6 +2,7 @@ from database.db import db
 from bson import ObjectId
 from datetime import datetime
 
+posts_collection = db["posts"]
 comments_collection = db["comments"]
 
 
@@ -14,7 +15,14 @@ def create_comment(data):
         "createdAt": datetime.utcnow()
     }
 
-    return comments_collection.insert_one(comment)
+    result = comments_collection.insert_one(comment)
+
+    posts_collection.update_one(
+        {"_id": ObjectId(data["post"])},
+        {"$inc": {"commentsCount": 1}}
+    )
+
+    return result
 
 
 def get_comments_by_post(post_id):
@@ -26,7 +34,15 @@ def get_comments_by_post(post_id):
 
 
 def delete_comment(comment_id, user_id):
-    return comments_collection.delete_one({
+    comment = comments_collection.find_one({
         "_id": ObjectId(comment_id),
         "user": ObjectId(user_id)
     })
+
+    if comment:
+        comments_collection.delete_one({"_id": comment["_id"]})
+
+        posts_collection.update_one(
+            {"_id": comment["post"]},
+            {"$inc": {"commentsCount": -1}}
+        )
