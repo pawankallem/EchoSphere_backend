@@ -5,7 +5,7 @@ from models.post_model import get_posts_by_user_id
 
 profile_bp = Blueprint("profile", __name__)
 
-@profile_bp.route("", methods=["GET"]) 
+@profile_bp.route("", methods=["GET"])
 @jwt_required
 def get_profile():
     try:
@@ -14,6 +14,29 @@ def get_profile():
             return jsonify({"error": "User not found"}), 404
 
         posts = get_posts_by_user_id(user["_id"])
+        enriched_posts = []
+
+        for post in posts:
+            likes = post.get("likes", [])
+            saved = post.get("savedBy", [])
+
+            enriched_posts.append({
+                "_id": str(post["_id"]),
+                "caption": post.get("caption"),
+                "image": post.get("image"),
+                "video": post.get("video"),
+
+                "author": str(post["author"]),
+
+                "likesCount": len(likes),
+                "savedCount": len(saved),
+                "commentsCount": post.get("commentsCount", 0),
+
+                "likes": request.user_id in [str(u) for u in likes],
+                "savedBy": request.user_id in [str(u) for u in saved],
+
+                "createdAt": str(post.get("createdAt"))
+            })
 
         return jsonify({
             "user": {
@@ -28,19 +51,7 @@ def get_profile():
                 "followers": [str(f) for f in user.get("followers", [])],
                 "following": [str(f) for f in user.get("following", [])]
             },
-            "posts": [
-                {
-                    "id": str(post["_id"]), 
-                    "author": str(post["author"]),
-                    "caption": post.get("caption"),
-                    "image": post.get("image"),
-                    "video": post.get("video"),
-                    "likes": [str(l) for l in post.get("likes", [])],      
-                    "savedBy": [str(s) for s in post.get("savedBy", [])], 
-                    "commentsCount": post.get("commentsCount", 0),
-                    "createdAt": str(post.get("createdAt"))
-                } for post in posts
-            ]
+            "posts": enriched_posts
         }), 200
 
     except Exception as e:
