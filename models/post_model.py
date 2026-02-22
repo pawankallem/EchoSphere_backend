@@ -1,6 +1,7 @@
 from database.db import db
 from bson import ObjectId
 from datetime import datetime
+from models.notification_model import create_notification
 
 posts_collection = db["posts"]
 
@@ -45,16 +46,34 @@ def get_posts_by_user_id(user_id):
 def toggle_like(post_id, user_id):
     post = posts_collection.find_one({"_id": ObjectId(post_id)})
 
-    if ObjectId(user_id) in post.get("likes", []):
+    if not post:
+        return None
+
+    user_obj_id = ObjectId(user_id)
+    author_id = post["author"]
+
+    if user_obj_id in post.get("likes", []):
         return posts_collection.update_one(
             {"_id": ObjectId(post_id)},
-            {"$pull": {"likes": ObjectId(user_id)}}
+            {"$pull": {"likes": user_obj_id}}
         )
+
     else:
-        return posts_collection.update_one(
+        posts_collection.update_one(
             {"_id": ObjectId(post_id)},
-            {"$addToSet": {"likes": ObjectId(user_id)}}
+            {"$addToSet": {"likes": user_obj_id}}
         )
+
+        if author_id != user_obj_id:
+            create_notification({
+                "recipient": author_id,
+                "sender": user_id,
+                "type": "like",
+                "post": post_id,
+                "message": "liked your post"
+            })
+
+        return True
     
 def toggle_save(post_id, user_id):
     post = posts_collection.find_one({"_id": ObjectId(post_id)})

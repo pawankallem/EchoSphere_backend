@@ -1,6 +1,7 @@
 from database.db import db
 from bson import ObjectId
 from datetime import datetime
+from models.notification_model import create_notification
 
 posts_collection = db["posts"]
 comments_collection = db["comments"]
@@ -21,6 +22,17 @@ def create_comment(data):
         {"_id": ObjectId(data["post"])},
         {"$inc": {"commentsCount": 1}}
     )
+
+    post = posts_collection.find_one({"_id": ObjectId(data["post"])})
+
+    if str(post["author"]) != str(data["user"]):
+        create_notification({
+            "recipient": post["author"],
+            "sender": data["user"],
+            "type": "comment",
+            "post": data["post"],
+            "message": "commented on your post"
+        })
 
     return result
 
