@@ -34,6 +34,8 @@ def get_profile():
 
                 "likes": request.user_id in [str(u) for u in likes],
                 "savedBy": request.user_id in [str(u) for u in saved],
+                "likedBy": [str(u) for u in likes],
+                "savedByUsers": [str(u) for u in saved],
 
                 "createdAt": str(post.get("createdAt"))
             })
