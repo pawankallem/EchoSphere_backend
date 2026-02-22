@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from utils.auth_middleware import jwt_required
-from models.post_model import create_post, get_all_posts, like_post, save_post
+from models.post_model import create_post, get_all_posts, toggle_like, toggle_save, get_post_by_id
 from utils.user_preview import get_user_preview
+from utils.response_fun import enrich_post
 
 post_bp = Blueprint("posts", __name__)
 
@@ -62,7 +63,8 @@ def get_posts():
 @post_bp.route("/<post_id>/like", methods=["PUT"])
 @jwt_required
 def like(post_id):
-    like_post(post_id, request.user_id)
+    toggle_like(post_id, request.user_id)
+
     return jsonify({"message": "Post liked"})
 
 
@@ -70,5 +72,6 @@ def like(post_id):
 @post_bp.route("/<post_id>/save", methods=["PUT"])
 @jwt_required
 def save(post_id):
-    save_post(post_id, request.user_id)
+    toggle_save(post_id, request.user_id)
+
     return jsonify({"message": "Post saved"})
