@@ -54,6 +54,8 @@ def get_posts():
 
             "likes": request.user_id in [str(u) for u in likes],
             "savedBy": request.user_id in [str(u) for u in saved],
+            "likedBy": [str(u) for u in likes],
+            "savedByUsers": [str(u) for u in saved],
 
             "createdAt": post["createdAt"]
         })

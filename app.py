@@ -4,6 +4,7 @@ from routes.auth_routes import auth_bp
 from routes.post_routes import post_bp
 from routes.comment_routes import comment_bp
 from routes.profile import profile_bp
+from routes.notification_routes import notification_bp
 
 
 from config import PORT, FRONTEND_URL
@@ -15,6 +16,7 @@ app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(post_bp, url_prefix="/api/posts")
 app.register_blueprint(comment_bp, url_prefix="/api/comments")
 app.register_blueprint(profile_bp, url_prefix="/api/profile")
+app.register_blueprint(notification_bp, url_prefix="/api/notifications")
 
 
 @app.route("/")
